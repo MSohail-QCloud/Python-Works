@@ -34,6 +34,10 @@ for i in range(100):
     print(driver.find_elements(By.CSS_SELECTOR, '.h-display-flex a[href]')[i])
 #driver.find_elements(By.CSS_SELECTOR, '.h-display-flex a[href]')[2].click()
 input("exit")
+
+
+
+
 '''
 
 
