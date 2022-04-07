@@ -1,27 +1,12 @@
 import time
 from datetime import datetime, timedelta
-import xlsxwriter
-import urllib.request
-import zipfile
-import os
 from pathlib import Path
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 import pandas as pd
-# import xlsxwriter
-# from xlrd import open_workbook
-import openpyxl
-import os.path
 
 # extraction from excel dataset
 pth = (str(Path.cwd()) + '\DPCI Helping File With Tab Information.xlsx')
@@ -37,6 +22,8 @@ print(df2)
 # variables
 lstTitles = []
 lstReview = []
+OverallRating = ""
+lstReview.append(['Title', 'Rating', 'Recommend', 'UserName', 'ReviewDate', 'Review'])
 # set browser launch options
 options = Options()
 options.add_argument("start-maximized")
@@ -70,11 +57,14 @@ for index, row in df2.iterrows():
             print("Error")
             loadMoreFound = "No"
     counter = 0
+    # Overall Rating
+    for Or in driver.find_elements(by=By.CLASS_NAME, value='fJUWGc'):
+        OverallRating = Or.text
+        print(OverallRating)
     # Title
     for ReviewTitle in driver.find_elements(by=By.CLASS_NAME, value='eJeHYp h3'):
         t = ReviewTitle.text
         lstTitles.append(t)
-        print(t)
     # User time review
     for Reviewdetail in driver.find_elements(by=By.CLASS_NAME, value='zhyqn,h-text-sm span'):
         if "Would" in Reviewdetail.text:
@@ -92,7 +82,7 @@ for index, row in df2.iterrows():
                 y = y * 365
                 t.insert(4, str(datetime.today() - timedelta(days=y)))
             if 'month' in ulist[1]:
-                y1=ulist[1].strip()
+                y1 = ulist[1].strip()
                 y = int(y1[0])
                 y = y * 30
                 t.insert(4, str(datetime.today() - timedelta(days=y)))
@@ -100,14 +90,18 @@ for index, row in df2.iterrows():
                 y1 = ulist[1].strip()
                 y = int(y1[0])
                 t.insert(4, str(datetime.today() - timedelta(days=y)))
+            for i in t:
+                if 'Hey bullseye reviewer' in i:
+                    t.remove('Hey bullseye reviewer')
             lstReview.append(t)
+            print(t)
 
     df = pd.DataFrame(lstReview)
-    writer = pd.ExcelWriter(dpci.xlsx, engine='xlsxwriter')
+    writer = pd.ExcelWriter("D:/TargetOutputFiles/" + dpci + "_" + OverallRating + ".xlsx", engine='xlsxwriter')
     df.to_excel(writer, sheet_name='Data', index=False)
     writer.save()
     print(lstReview)
-
+driver.close()
 input("exit\n")
 
 '''
